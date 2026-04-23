@@ -3,8 +3,8 @@
     <tr>
       <th class="check-col">Перевірка та що вона тестує</th>
       {% for tool in tools %}
-      <th class="tool-col tool-col-featured">
-        <span class="sparkle-star">★</span> {{ tool_names_ua.get(tool, tool) }} <span class="sparkle-star sparkle-star--lag">★</span>
+      <th class="tool-col">
+        {{ tool_names_ua.get(tool, tool) }}
         <div class="tool-name-en">{{ tool }}</div>
       </th>
       {% endfor %}
