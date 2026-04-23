@@ -10,9 +10,16 @@ import httpx
 import probes as probe_pkg
 from probes import get_probes, get_slow_probes
 from targets import TARGETS
-from storage.db import save_finding
+from storage.db import save_finding, get_compliance_matrix
 
 _last_run: dict[str, float] = {}
+
+# All checks except C-RATE-001 — used to decide when a team is "all green"
+_REGULAR_CHECK_IDS = {
+    "C-LIVE-001", "C-AUTH-001", "C-AUTH-002",
+    "C-SCHEMA-001", "C-SCHEMA-002",
+    "C-ADMIN-001", "C-ISOLATION-001",
+}
 
 
 def _load_probe_modules():
@@ -20,7 +27,7 @@ def _load_probe_modules():
         importlib.import_module(f"probes.{name}")
 
 
-def _can_run(tool: str, check_id: str, min_interval: float = 60.0) -> bool:
+def _can_run(tool: str, check_id: str, min_interval: float = 15.0) -> bool:
     key = f"{tool}:{check_id}"
     now = datetime.now(timezone.utc).timestamp()
     if now - _last_run.get(key, 0) >= min_interval:
@@ -47,8 +54,7 @@ async def _run_one(client: httpx.AsyncClient, target: dict, fn, min_interval: fl
         print(f"[scheduler] {target['tool']} probe error: {exc}")
 
 
-async def _run_probes(probe_list, min_interval: float = 60.0):
-    # Run all (target × probe) combinations concurrently, capped at 20 in-flight
+async def _run_probes(probe_list, min_interval: float, targets=None):
     semaphore = asyncio.Semaphore(20)
     async with httpx.AsyncClient() as client:
         async def bounded(target, fn):
@@ -56,29 +62,42 @@ async def _run_probes(probe_list, min_interval: float = 60.0):
                 await _run_one(client, target, fn, min_interval)
         tasks = [
             bounded(target, fn)
-            for target in TARGETS
+            for target in (targets or TARGETS)
             for fn in probe_list
         ]
         await asyncio.gather(*tasks)
 
 
+async def _trigger_rate_limit_for_passing_teams():
+    """After each regular cycle, run C-RATE-001 for any team that is
+    all-green on every other check. Rate-limited to once per hour."""
+    slow = get_slow_probes()
+    if not slow:
+        return
+    matrix = await get_compliance_matrix()
+    passing_targets = [
+        t for t in TARGETS
+        if all(
+            matrix.get(t["tool"], {}).get(c, {}).get("status") == "PASS"
+            for c in _REGULAR_CHECK_IDS
+        )
+    ]
+    if passing_targets:
+        tools = [t["tool"] for t in passing_targets]
+        print(f"[scheduler] all-green teams — running C-RATE-001 for: {tools}")
+        await _run_probes(slow, min_interval=3600.0, targets=passing_targets)
+
+
 async def run_regular_probes():
-    await _run_probes(get_probes(), min_interval=60.0)
-
-
-async def run_slow_probes():
-    await _run_probes(get_slow_probes(), min_interval=3600.0)
+    await _run_probes(get_probes(), min_interval=15.0)
+    await _trigger_rate_limit_for_passing_teams()
 
 
 def start_scheduler() -> AsyncIOScheduler:
     _load_probe_modules()
     scheduler = AsyncIOScheduler()
     now = datetime.now(timezone.utc)
-    scheduler.add_job(run_regular_probes, "interval", seconds=60,   id="regular", max_instances=2,
-                      next_run_time=now)
-    # next_run_time=now makes the slow probe fire once immediately on startup,
-    # then every hour — otherwise in a one-day workshop it would never run.
-    scheduler.add_job(run_slow_probes,   "interval", seconds=3600,  id="slow",    max_instances=1,
-                      next_run_time=now)
+    scheduler.add_job(run_regular_probes, "interval", seconds=15, id="regular",
+                      max_instances=2, next_run_time=now)
     scheduler.start()
     return scheduler
