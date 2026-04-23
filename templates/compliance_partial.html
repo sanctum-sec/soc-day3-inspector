@@ -1,8 +1,13 @@
 <table>
   <thead>
     <tr>
-      <th class="check-col">Check &amp; what it tests</th>
-      {% for tool in tools %}<th class="tool-col">{{ tool }}</th>{% endfor %}
+      <th class="check-col">Перевірка та що вона тестує</th>
+      {% for tool in tools %}
+      <th class="tool-col">
+        {{ tool_names_ua.get(tool, tool) }}
+        <div class="tool-name-en">{{ tool }}</div>
+      </th>
+      {% endfor %}
     </tr>
   </thead>
   <tbody>
@@ -17,26 +22,26 @@
         {% set cell = matrix.get(tool, {}).get(check_id) %}
         {% if cell %}
           {% if cell.status == 'PASS' %}
-            <td class="pass" title="Last checked: {{ cell.probe_time }}&#10;Sent: {{ cell.check_label }}&#10;Expected: {{ cell.expected }}  Got: {{ cell.observed }}">
+            <td class="pass" title="Перевірено: {{ cell.probe_time }}&#10;Запит: {{ cell.check_label }}&#10;Очікувалось: {{ cell.expected }}  Отримано: {{ cell.observed }}">
               <div class="cell-icon">✓</div>
               <div class="cell-sub">{{ cell.observed }}</div>
             </td>
           {% elif cell.status == 'FAIL' %}
-            <td class="fail" title="Last checked: {{ cell.probe_time }}&#10;Sent: {{ cell.check_label }}&#10;Expected: {{ cell.expected }}  Got: {{ cell.observed }}&#10;{% if cell.notes %}Note: {{ cell.notes }}{% endif %}">
+            <td class="fail" title="Перевірено: {{ cell.probe_time }}&#10;Запит: {{ cell.check_label }}&#10;Очікувалось: {{ cell.expected }}  Отримано: {{ cell.observed }}&#10;{% if cell.notes %}Примітка: {{ cell.notes }}{% endif %}">
               <div class="cell-icon">✗</div>
-              <div class="cell-sub">got {{ cell.observed }}, expected {{ cell.expected }}</div>
+              <div class="cell-sub">отримано {{ cell.observed }}, очікувалось {{ cell.expected }}</div>
               {% if cell.notes %}<div class="cell-note">{{ cell.notes }}</div>{% endif %}
             </td>
           {% else %}
-            <td class="unreachable" title="Last checked: {{ cell.probe_time }}&#10;{{ cell.notes }}">
+            <td class="unreachable" title="Перевірено: {{ cell.probe_time }}&#10;{{ cell.notes }}">
               <div class="cell-icon">?</div>
-              <div class="cell-sub">unreachable</div>
+              <div class="cell-sub">недоступний</div>
             </td>
           {% endif %}
         {% else %}
           <td class="unknown">
             <div class="cell-icon">?</div>
-            <div class="cell-sub">no data yet</div>
+            <div class="cell-sub">ще немає даних</div>
           </td>
         {% endif %}
       {% endfor %}
@@ -46,36 +51,40 @@
 </table>
 
 <div class="legend">
-  <div class="legend-title">How to read this table</div>
+  <div class="legend-title">Як читати цю таблицю</div>
   <div class="legend-grid">
     <div class="legend-item pass-bg">
-      <span class="legend-icon">✓ PASS</span>
-      <span class="legend-text">The service returned exactly what the protocol requires. No action needed.</span>
+      <span class="legend-icon">✓ ПРОЙДЕНО</span>
+      <span class="legend-text">Сервіс повернув саме те, що вимагає протокол. Жодних дій не потрібно.</span>
     </div>
     <div class="legend-item fail-bg">
-      <span class="legend-icon">✗ FAIL</span>
-      <span class="legend-text">The service responded but with the wrong code — a real non-conformity with the shared contract. See the note in the cell for details.</span>
+      <span class="legend-icon">✗ ВІДМОВА</span>
+      <span class="legend-text">Сервіс відповів, але з неправильним кодом — реальна невідповідність спільному контракту. Дивіться примітку в комірці.</span>
     </div>
     <div class="legend-item unreachable-bg">
-      <span class="legend-icon">? UNREACHABLE</span>
-      <span class="legend-text">No response at all — service may not be deployed yet, or is down. An unknown posture is itself a risk.</span>
+      <span class="legend-icon">? НЕДОСТУПНИЙ</span>
+      <span class="legend-text">Жодної відповіді — сервіс може бути ще не розгорнутий або не працює. Невідомий стан сам по собі є ризиком.</span>
     </div>
     <div class="legend-item unknown-bg">
-      <span class="legend-icon">? NO DATA</span>
-      <span class="legend-text">This check has not run yet against this target. Results will appear within 60 seconds.</span>
+      <span class="legend-icon">? НЕМАЄ ДАНИХ</span>
+      <span class="legend-text">Ця перевірка ще не виконувалась для цього об'єкта. Результати з'являться протягом 60 секунд.</span>
     </div>
   </div>
 </div>
 
-<h2 class="section-title">Recent Findings (last 20)</h2>
+<h2 class="section-title">Останні результати (20 записів)</h2>
 {% for f in recent %}
 <div class="finding {{ f.status | lower }}">
   <span class="f-time">{{ f.probe_time }}</span>
-  <span class="f-tool">{{ f.target_tool }}</span>
+  <span class="f-tool">{{ tool_names_ua.get(f.target_tool, f.target_tool) }} ({{ f.target_tool }})</span>
   <span class="f-check">{{ f.check_id }}</span>
-  <span class="f-status">{{ f.status }}</span>
-  <span class="f-detail">expected {{ f.expected }} · got {{ f.observed }}{% if f.notes %} · {{ f.notes }}{% endif %}</span>
+  <span class="f-status">
+    {% if f.status == 'PASS' %}ПРОЙДЕНО
+    {% elif f.status == 'FAIL' %}ВІДМОВА
+    {% else %}НЕДОСТУПНИЙ{% endif %}
+  </span>
+  <span class="f-detail">очікувалось {{ f.expected }} · отримано {{ f.observed }}{% if f.notes %} · {{ f.notes }}{% endif %}</span>
 </div>
 {% else %}
-<p class="muted">No findings yet — probe engine starting up.</p>
+<p class="muted">Результатів ще немає — рушій зондування запускається.</p>
 {% endfor %}

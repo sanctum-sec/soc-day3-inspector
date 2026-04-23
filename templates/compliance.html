@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
   <meta charset="utf-8">
-  <title>SOC Inspector — Compliance Dashboard</title>
+  <title>Інспектор SOC — Панель відповідності</title>
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
   <style>
     * { box-sizing: border-box; }
@@ -14,19 +14,17 @@
              font-size:0.78em; margin-bottom:20px; color:#94a3b8; }
     .scope strong { color:#c7d2fe; }
 
-    /* --- Matrix table --- */
     table { border-collapse:collapse; width:100%; margin-bottom:24px; font-size:0.82em; }
     th, td { border:1px solid #2d2d44; padding:8px 10px; vertical-align:top; }
     th.check-col { text-align:left; width:280px; background:#16213e; color:#a5b4fc; font-weight:normal; }
     th.tool-col  { background:#16213e; color:#a5b4fc; font-weight:normal; text-align:center; min-width:110px; }
+    .tool-name-en { font-size:0.75em; color:#6b7280; }
 
-    /* Check column cells */
     td.check-col  { background:#0d0d1f; }
     .check-id     { color:#6b7280; font-size:0.8em; margin-bottom:2px; }
     .check-label  { color:#c7d2fe; font-weight:bold; margin-bottom:4px; }
     .check-desc   { color:#9ca3af; font-size:0.78em; line-height:1.4; }
 
-    /* Result cells */
     td { text-align:center; }
     .pass        { background:#052e16; }
     .fail        { background:#2d0a0a; }
@@ -44,7 +42,6 @@
 
     td[title] { cursor:help; }
 
-    /* --- Legend --- */
     .legend { margin-bottom:24px; }
     .legend-title { color:#818cf8; font-size:0.9em; border-bottom:1px solid #2d2d44;
                     padding-bottom:5px; margin-bottom:10px; }
@@ -55,14 +52,13 @@
     .fail-bg        { background:#2d0a0a; }
     .unreachable-bg { background:#1c1c08; }
     .unknown-bg     { background:#1a1a2e; }
-    .legend-icon { font-size:0.82em; font-weight:bold; white-space:nowrap; min-width:90px; }
+    .legend-icon { font-size:0.82em; font-weight:bold; white-space:nowrap; min-width:110px; }
     .pass-bg .legend-icon        { color:#4ade80; }
     .fail-bg .legend-icon        { color:#f87171; }
     .unreachable-bg .legend-icon { color:#fbbf24; }
     .unknown-bg .legend-icon     { color:#4b5563; }
     .legend-text { font-size:0.78em; color:#9ca3af; line-height:1.4; }
 
-    /* --- Recent findings --- */
     .section-title { color:#818cf8; font-size:0.95em; border-bottom:1px solid #2d2d44;
                      padding-bottom:5px; margin-bottom:10px; margin-top:0; }
     .finding { display:flex; gap:10px; font-size:0.8em; padding:5px 0;
@@ -70,7 +66,7 @@
     .f-time   { color:#6b7280; min-width:145px; }
     .f-tool   { color:#a5b4fc; min-width:75px; }
     .f-check  { color:#94a3b8; min-width:120px; }
-    .f-status { min-width:80px; font-weight:bold; }
+    .f-status { min-width:90px; font-weight:bold; }
     .finding.pass .f-status        { color:#4ade80; }
     .finding.fail .f-status        { color:#f87171; }
     .finding.unreachable .f-status { color:#fbbf24; }
@@ -79,16 +75,17 @@
   </style>
 </head>
 <body>
-  <h1>SOC Inspector — Live Compliance Dashboard</h1>
-  <div class="meta">Auto-refreshes every 15 s &nbsp;·&nbsp; All times UTC &nbsp;·&nbsp; Read-only public view</div>
+  <h1>Інспектор SOC — Панель відповідності (реальний час)</h1>
+  <div class="meta">Автооновлення кожні 15 с &nbsp;·&nbsp; Час UTC &nbsp;·&nbsp; Публічний перегляд (лише читання)</div>
   <div class="scope">
-    <strong>Declared scope:</strong> This dashboard tests only the endpoints and behaviours listed below,
-    against the shared SOC protocol contract. No undeclared checks. No exploitation.
-    Every probe is logged. Hover any cell for the raw finding detail.
+    <strong>Задекларована область перевірки:</strong> Ця панель тестує лише кінцеві точки та поведінку,
+    перелічені нижче, відповідно до спільного контракту SOC-протоколу.
+    Жодних незадекларованих перевірок. Жодної експлуатації вразливостей.
+    Кожен зонд реєструється. Наведіть курсор на комірку для отримання детальних даних.
   </div>
 
   <div hx-get="/compliance-partial" hx-trigger="load, every 15s" hx-swap="innerHTML">
-    <p class="muted">Loading compliance data…</p>
+    <p class="muted">Завантаження даних відповідності…</p>
   </div>
 </body>
 </html>

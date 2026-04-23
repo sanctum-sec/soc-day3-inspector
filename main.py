@@ -15,43 +15,50 @@ CHECK_ORDER = [
 ]
 TOOL_ORDER = ["trap", "scout", "analyst", "hunter", "dispatcher"]
 
-# Short technical label shown in the check column header
-CHECK_LABELS = {
-    "C-LIVE-001":      "Service is running",
-    "C-AUTH-001":      "Rejects unauthenticated requests",
-    "C-AUTH-002":      "Validates token value, not just presence",
-    "C-SCHEMA-001":    "Rejects non-JSON input",
-    "C-SCHEMA-002":    "Validates required envelope fields",
-    "C-RATE-001":      "Rate limiting is active",
-    "C-ADMIN-001":     "Admin page requires credentials",
-    "C-ISOLATION-001": "Admin not exposed on public port",
+TOOL_NAMES_UA = {
+    "trap":       "Пастка",
+    "scout":      "Розвідник",
+    "analyst":    "Аналітик",
+    "hunter":     "Мисливець",
+    "dispatcher": "Диспетчер",
 }
 
-# Plain-English description shown as subtitle in the check column
+CHECK_LABELS = {
+    "C-LIVE-001":      "Сервіс працює",
+    "C-AUTH-001":      "Відхиляє неавтентифіковані запити",
+    "C-AUTH-002":      "Перевіряє значення токена, а не лише його наявність",
+    "C-SCHEMA-001":    "Відхиляє дані не у форматі JSON",
+    "C-SCHEMA-002":    "Перевіряє наявність обов'язкових полів конверта",
+    "C-RATE-001":      "Обмеження частоти запитів активне",
+    "C-ADMIN-001":     "Сторінка адміністратора захищена паролем",
+    "C-ISOLATION-001": "Адмін-панель недоступна на публічному порту",
+}
+
 CHECK_DESC = {
     "C-LIVE-001":
-        "GET /health → 200. The service responded. If this fails, nothing else can be checked.",
+        "GET /health → 200. Сервіс відповів. "
+        "Якщо ця перевірка не проходить — жодну іншу виконати неможливо.",
     "C-AUTH-001":
-        "POST /ingest with no token → 401. Anyone without credentials must be turned away. "
-        "A 200 here means the pipeline accepts unauthenticated writes — data integrity risk.",
+        "POST /ingest без токена → 401. Усі запити без облікових даних мають відхилятися. "
+        "Код 200 тут означає, що pipeline приймає неавтентифіковані записи — ризик цілісності даних.",
     "C-AUTH-002":
-        "POST /ingest with wrong token → 401. The token value must be verified, not just its presence. "
-        "A 200 here means any string in the header is accepted.",
+        "POST /ingest з невірним токеном → 401. Значення токена має перевірятися, а не лише його наявність. "
+        "Код 200 тут означає, що будь-який рядок у заголовку Authorization приймається.",
     "C-SCHEMA-001":
-        "POST /ingest with HTML body → 400. Non-JSON input must be rejected before processing. "
-        "A 200 here means malformed data could enter the pipeline.",
+        "POST /ingest з HTML-тілом → 400. Дані не у форматі JSON мають відхилятися до обробки. "
+        "Код 200 тут означає, що некоректні дані можуть потрапити в pipeline.",
     "C-SCHEMA-002":
-        "POST /ingest with incomplete JSON → 400. Required protocol fields must all be present. "
-        "A 200 here means downstream tools may receive incomplete events and crash or misfire.",
+        "POST /ingest з неповним JSON → 400. Усі обов'язкові поля протоколу мають бути присутні. "
+        "Код 200 тут означає, що downstream-інструменти можуть отримати неповні події та збоїти.",
     "C-RATE-001":
-        "200 rapid requests → at least one 429. Rate limiting must cut off floods. "
-        "Absence of 429 means an adversary could overwhelm the pipeline or hide real events in noise.",
+        "200 швидких запитів → хоча б один 429. Обмеження частоти має зупиняти потоки запитів. "
+        "Відсутність 429 означає, що зловмисник може перевантажити pipeline або приховати реальні події в шумі.",
     "C-ADMIN-001":
-        "GET :8001/admin with no credentials → 401. The admin page must require a password. "
-        "A 200 here means operational data is publicly visible.",
+        "GET :8001/admin без облікових даних → 401. Сторінка адміністратора має вимагати пароль. "
+        "Код 200 тут означає, що оперативні дані публічно доступні.",
     "C-ISOLATION-001":
-        "GET :8000/admin → 404. Admin must not exist on the public port. "
-        "A 200 here means admin is reachable by anyone who can reach the service.",
+        "GET :8000/admin → 404. Адмін-панель не повинна існувати на публічному порту. "
+        "Код 200 тут означає, що адмін-панель доступна будь-кому, хто може зв'язатися з сервісом.",
 }
 
 
@@ -86,6 +93,7 @@ async def compliance_full(request: Request):
     recent = await get_recent_findings(20)
     return _render("compliance.html",
         matrix=matrix, tools=TOOL_ORDER, checks=CHECK_ORDER,
+        tool_names_ua=TOOL_NAMES_UA,
         check_labels=CHECK_LABELS, check_desc=CHECK_DESC, recent=recent)
 
 
@@ -95,4 +103,5 @@ async def compliance_partial(request: Request):
     recent = await get_recent_findings(20)
     return _render("compliance_partial.html",
         matrix=matrix, tools=TOOL_ORDER, checks=CHECK_ORDER,
+        tool_names_ua=TOOL_NAMES_UA,
         check_labels=CHECK_LABELS, check_desc=CHECK_DESC, recent=recent)
