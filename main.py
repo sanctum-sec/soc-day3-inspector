@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from jinja2 import Environment, FileSystemLoader
 
 from storage.db import init_db, get_recent_findings, get_compliance_matrix
 from scheduler import start_scheduler
+
+_jinja = Environment(loader=FileSystemLoader("templates"), autoescape=True)
 
 CHECK_ORDER = [
     "C-LIVE-001", "C-AUTH-001", "C-AUTH-002",
@@ -33,7 +35,11 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="SOC Inspector", lifespan=lifespan)
-templates = Jinja2Templates(directory="templates")
+
+
+def _render(template_name: str, **ctx) -> HTMLResponse:
+    html = _jinja.get_template(template_name).render(**ctx)
+    return HTMLResponse(html)
 
 
 @app.get("/health")
@@ -50,25 +56,15 @@ async def findings(limit: int = 50):
 async def compliance_full(request: Request):
     matrix = await get_compliance_matrix()
     recent = await get_recent_findings(20)
-    return templates.TemplateResponse("compliance.html", {
-        "request":      request,
-        "matrix":       matrix,
-        "tools":        TOOL_ORDER,
-        "checks":       CHECK_ORDER,
-        "check_labels": CHECK_LABELS,
-        "recent":       recent,
-    })
+    return _render("compliance.html",
+        matrix=matrix, tools=TOOL_ORDER, checks=CHECK_ORDER,
+        check_labels=CHECK_LABELS, recent=recent)
 
 
 @app.get("/compliance-partial", response_class=HTMLResponse)
 async def compliance_partial(request: Request):
     matrix = await get_compliance_matrix()
     recent = await get_recent_findings(20)
-    return templates.TemplateResponse("compliance_partial.html", {
-        "request":      request,
-        "matrix":       matrix,
-        "tools":        TOOL_ORDER,
-        "checks":       CHECK_ORDER,
-        "check_labels": CHECK_LABELS,
-        "recent":       recent,
-    })
+    return _render("compliance_partial.html",
+        matrix=matrix, tools=TOOL_ORDER, checks=CHECK_ORDER,
+        check_labels=CHECK_LABELS, recent=recent)

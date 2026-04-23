@@ -1,9 +1,9 @@
 import os
 import secrets
-from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.templating import Jinja2Templates
+from jinja2 import Environment, FileSystemLoader
 
 from storage.db import get_admin_stats, get_recent_findings
 
@@ -11,7 +11,7 @@ ADMIN_USER = os.environ.get("ADMIN_USER", "admin")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "changeme")
 
 admin_app = FastAPI(title="Inspector Admin")
-templates = Jinja2Templates(directory="templates")
+_jinja = Environment(loader=FileSystemLoader("templates"), autoescape=True)
 security = HTTPBasic()
 
 
@@ -24,15 +24,12 @@ def require_auth(creds: HTTPBasicCredentials = Depends(security)):
 
 
 @admin_app.get("/admin", response_class=HTMLResponse)
-async def admin_page(request: Request, _: str = Depends(require_auth)):
+async def admin_page(_: str = Depends(require_auth)):
     stats = await get_admin_stats()
     recent = await get_recent_findings(50)
     fails = [f for f in recent if f["status"] == "FAIL"]
     unreachable = [f for f in recent if f["status"] == "UNREACHABLE"]
-    return templates.TemplateResponse("admin.html", {
-        "request":     request,
-        "stats":       stats,
-        "recent":      recent,
-        "fails":       fails,
-        "unreachable": unreachable,
-    })
+    html = _jinja.get_template("admin.html").render(
+        stats=stats, recent=recent, fails=fails, unreachable=unreachable
+    )
+    return HTMLResponse(html)
