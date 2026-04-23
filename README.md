@@ -420,3 +420,27 @@ to probe the same (target, check) combination more than once per 60 seconds.
 - Короткий screencast із вашим інструментом, озвучений українською, у навчальних матеріалах
 
 Вдалого полювання — і насолоджуйтеся статусом команди, яка має право бути правою.
+
+---
+
+## Наскрізні цілі Дня 3 (AI-CTI-теми)
+
+На додачу до специфічних-для-команди deliverable-ів вище, **наступні три теми з програми Дня 3 (Модулі 4–6) мають помітно проявитися десь у вашому інструменті, адмін-сторінці або навчальних артефактах.** Claude Code — те, що робить це виконуваним за один день — використовуйте його.
+
+### Ціль 1 — AI-Augmented CTI
+
+Використайте Claude (чи будь-який LLM) для автоматизації щонайменше одного кроку CTI-циклу *всередині* вашого інструмента: extraction, classification, correlation чи enrichment threat intelligence. Це — практична реалізація Модуля 4.
+
+### Ціль 2 — TTP та AI-enabled attack patterns
+
+Коли мапуєте поведінку в MITRE ATT&CK, розпізнавайте також TTP, які AI-enabled зловмисник створить інакше: LLM-генерований phishing, автоматизований OSINT-driven recon, машинно-генеровані polymorphic payloads, scripted beaconing на незвичних інтервалах. Відобразіть це у ваших детекціях, гіпотезах, тегах IOC чи playbook-ах.
+
+### Ціль 3 — AI Social Engineering (offense *та* defense)
+
+Справжні зловмисники зараз використовують AI для масштабування phishing-у, voice-cloning, impersonation. Ваш інструмент має хоч раз цього торкнутися: захопити SE-артефакт, тегнути один, алертити на один, збагатити один — або, щонайменше, документувати, *як би* ваш інструмент реагував на AI-enabled SE-спробу.
+
+### Як кожна ціль потрапляє у вашу роботу — специфічна для команди
+
+- **AI-Augmented CTI:** Ваш власний інструмент *є* AI-assisted build. Документуйте у methodology-journal-і кожне місце, де ви використали Claude для CTI-задач (написання правил, чеклістів, inspection-звітів). Це — навчальний матеріал Модуля 4 дослівно.
+- **TTP / AI attack patterns:** Додайте у ваш inspection-чекліст рядок на команду, що запитує: *«Does this tool detect or reason about AI-enabled attack patterns?»* Вимагайте evidence (правило, тег, рядок логу) для «галочки». Компаєнс-дашборд має показувати, хто пройшов цей аудит.
+- **AI social engineering:** Додайте спеціальний SE-аудит: *«Does this tool's admin page resist credential harvesting?»* (стуканіть fake phishing-kit POST-ом, очікуйте 401 + логований security event). Runbook має містити розділ про SE-resilience.

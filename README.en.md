@@ -420,3 +420,27 @@ By 11:00:
 - A short screencast walking through your tool, narrated in Ukrainian, archived with the training materials
 
 Good hunting — and enjoy being the team that gets to be right.
+
+---
+
+## Day 3 cross-cutting goals (AI-CTI themes)
+
+In addition to your team-specific deliverables above, **the following three themes from Day 3's curriculum (Modules 4–6) should visibly show up somewhere in your tool, your admin page, or your training artifacts.** Claude Code is the one that makes these feasible in a single day — use it.
+
+### Goal 1 — AI-Augmented CTI
+
+Use Claude (or any LLM) to automate at least one step of the CTI lifecycle *inside* your tool: extraction, classification, correlation, or enrichment of threat intelligence. This is Module 4's practical application.
+
+### Goal 2 — TTPs and AI-enabled Attack Patterns
+
+When you map behaviors to MITRE ATT&CK, also recognize TTPs that an AI-enabled adversary would produce differently: LLM-generated phishing prose, automated OSINT-driven recon, machine-generated polymorphic payloads, scripted beaconing at unusual intervals. Reflect this in your detections, hypotheses, IOC tags, or playbooks.
+
+### Goal 3 — AI Social Engineering (offense *and* defense)
+
+Real attackers now use AI to scale phishing, voice-cloning, and impersonation. Your tool should touch this at least once: capturing a social-engineering artifact, tagging one, alerting on it, enriching one, or — at minimum — documenting how your tool *would* react to an AI-enabled SE attempt.
+
+### How each goal lands in your work — team-specific guidance
+
+- **AI-Augmented CTI:** Your own tool *is* an AI-assisted build. Document in your methodology journal every place you used Claude for CTI-related tasks (rule writing, checklist drafting, inspection-report authoring). This becomes Module 4 training material verbatim.
+- **TTPs / AI attack patterns:** Add to your inspection checklist a row per team asking: *"Does this tool detect or reason about AI-enabled attack patterns?"* Require evidence (a rule, a tag, a log line) to check the box. Your compliance dashboard should show which teams passed this audit.
+- **AI social engineering:** Add a specific SE-focused audit: *"Does this tool's admin page resist credential harvesting?"* (send a fake phishing-kit POST at it, expect 401 + logged security event). Your inspection runbook should include an SE-resilience chapter.
