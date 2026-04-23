@@ -47,7 +47,7 @@ In regulated industries (nuclear, finance, healthcare) this role has a name: the
 
 ```
 ssh ubuntu@wic06.sanctumsec.com
-# password: GhostTrace-06!
+# password/пароль: see https://wic-krakow.sanctumsec.com/wic-access-ghosttrace (Basic Auth: wic / stepup-krakow-2026)
 ```
 
 Pre-installed: git, Python 3.10 + pip, Node.js LTS, `claude`, `codex`, AWS CLI + credentials for `s3://wic-krakow-2026`, jupyter + pandas/numpy/matplotlib/seaborn/scikit-learn/requests/httpx, plus `SOC_PROTOCOL_TOKEN` in `~/.soc_env`.
