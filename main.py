@@ -15,15 +15,43 @@ CHECK_ORDER = [
 ]
 TOOL_ORDER = ["trap", "scout", "analyst", "hunter", "dispatcher"]
 
+# Short technical label shown in the check column header
 CHECK_LABELS = {
-    "C-LIVE-001":      "GET /health → 200",
-    "C-AUTH-001":      "POST /ingest no-auth → 401",
-    "C-AUTH-002":      "POST /ingest bad-token → 401",
-    "C-SCHEMA-001":    "POST /ingest non-JSON → 400",
-    "C-SCHEMA-002":    "POST /ingest missing field → 400",
-    "C-RATE-001":      "200 bursts → 429",
-    "C-ADMIN-001":     "GET :8001/admin no-auth → 401",
-    "C-ISOLATION-001": "GET :8000/admin → 404",
+    "C-LIVE-001":      "Service is running",
+    "C-AUTH-001":      "Rejects unauthenticated requests",
+    "C-AUTH-002":      "Validates token value, not just presence",
+    "C-SCHEMA-001":    "Rejects non-JSON input",
+    "C-SCHEMA-002":    "Validates required envelope fields",
+    "C-RATE-001":      "Rate limiting is active",
+    "C-ADMIN-001":     "Admin page requires credentials",
+    "C-ISOLATION-001": "Admin not exposed on public port",
+}
+
+# Plain-English description shown as subtitle in the check column
+CHECK_DESC = {
+    "C-LIVE-001":
+        "GET /health → 200. The service responded. If this fails, nothing else can be checked.",
+    "C-AUTH-001":
+        "POST /ingest with no token → 401. Anyone without credentials must be turned away. "
+        "A 200 here means the pipeline accepts unauthenticated writes — data integrity risk.",
+    "C-AUTH-002":
+        "POST /ingest with wrong token → 401. The token value must be verified, not just its presence. "
+        "A 200 here means any string in the header is accepted.",
+    "C-SCHEMA-001":
+        "POST /ingest with HTML body → 400. Non-JSON input must be rejected before processing. "
+        "A 200 here means malformed data could enter the pipeline.",
+    "C-SCHEMA-002":
+        "POST /ingest with incomplete JSON → 400. Required protocol fields must all be present. "
+        "A 200 here means downstream tools may receive incomplete events and crash or misfire.",
+    "C-RATE-001":
+        "200 rapid requests → at least one 429. Rate limiting must cut off floods. "
+        "Absence of 429 means an adversary could overwhelm the pipeline or hide real events in noise.",
+    "C-ADMIN-001":
+        "GET :8001/admin with no credentials → 401. The admin page must require a password. "
+        "A 200 here means operational data is publicly visible.",
+    "C-ISOLATION-001":
+        "GET :8000/admin → 404. Admin must not exist on the public port. "
+        "A 200 here means admin is reachable by anyone who can reach the service.",
 }
 
 
@@ -58,7 +86,7 @@ async def compliance_full(request: Request):
     recent = await get_recent_findings(20)
     return _render("compliance.html",
         matrix=matrix, tools=TOOL_ORDER, checks=CHECK_ORDER,
-        check_labels=CHECK_LABELS, recent=recent)
+        check_labels=CHECK_LABELS, check_desc=CHECK_DESC, recent=recent)
 
 
 @app.get("/compliance-partial", response_class=HTMLResponse)
@@ -67,4 +95,4 @@ async def compliance_partial(request: Request):
     recent = await get_recent_findings(20)
     return _render("compliance_partial.html",
         matrix=matrix, tools=TOOL_ORDER, checks=CHECK_ORDER,
-        check_labels=CHECK_LABELS, recent=recent)
+        check_labels=CHECK_LABELS, check_desc=CHECK_DESC, recent=recent)

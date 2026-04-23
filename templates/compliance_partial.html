@@ -1,26 +1,43 @@
 <table>
   <thead>
     <tr>
-      <th class="check">Check</th>
-      {% for tool in tools %}<th>{{ tool }}</th>{% endfor %}
+      <th class="check-col">Check &amp; what it tests</th>
+      {% for tool in tools %}<th class="tool-col">{{ tool }}</th>{% endfor %}
     </tr>
   </thead>
   <tbody>
     {% for check_id in checks %}
     <tr>
-      <th class="check">{{ check_labels.get(check_id, check_id) }}</th>
+      <td class="check-col">
+        <div class="check-id">{{ check_id }}</div>
+        <div class="check-label">{{ check_labels.get(check_id, check_id) }}</div>
+        <div class="check-desc">{{ check_desc.get(check_id, '') }}</div>
+      </td>
       {% for tool in tools %}
         {% set cell = matrix.get(tool, {}).get(check_id) %}
         {% if cell %}
           {% if cell.status == 'PASS' %}
-            <td class="pass" title="{{ check_id }} · {{ cell.probe_time }} · expected {{ cell.expected }} got {{ cell.observed }}{% if cell.notes %} · {{ cell.notes }}{% endif %}">✓</td>
+            <td class="pass" title="Last checked: {{ cell.probe_time }}&#10;Sent: {{ cell.check_label }}&#10;Expected: {{ cell.expected }}  Got: {{ cell.observed }}">
+              <div class="cell-icon">✓</div>
+              <div class="cell-sub">{{ cell.observed }}</div>
+            </td>
           {% elif cell.status == 'FAIL' %}
-            <td class="fail" title="{{ check_id }} · {{ cell.probe_time }} · expected {{ cell.expected }} got {{ cell.observed }}{% if cell.notes %} · {{ cell.notes }}{% endif %}">✗</td>
+            <td class="fail" title="Last checked: {{ cell.probe_time }}&#10;Sent: {{ cell.check_label }}&#10;Expected: {{ cell.expected }}  Got: {{ cell.observed }}&#10;{% if cell.notes %}Note: {{ cell.notes }}{% endif %}">
+              <div class="cell-icon">✗</div>
+              <div class="cell-sub">got {{ cell.observed }}, expected {{ cell.expected }}</div>
+              {% if cell.notes %}<div class="cell-note">{{ cell.notes }}</div>{% endif %}
+            </td>
           {% else %}
-            <td class="unreachable" title="{{ check_id }} · {{ cell.probe_time }} · {{ cell.notes }}">?</td>
+            <td class="unreachable" title="Last checked: {{ cell.probe_time }}&#10;{{ cell.notes }}">
+              <div class="cell-icon">?</div>
+              <div class="cell-sub">unreachable</div>
+            </td>
           {% endif %}
         {% else %}
-          <td class="unknown" title="No data yet">?</td>
+          <td class="unknown">
+            <div class="cell-icon">?</div>
+            <div class="cell-sub">no data yet</div>
+          </td>
         {% endif %}
       {% endfor %}
     </tr>
@@ -28,15 +45,37 @@
   </tbody>
 </table>
 
-<h2>Recent Findings (last 20)</h2>
+<div class="legend">
+  <div class="legend-title">How to read this table</div>
+  <div class="legend-grid">
+    <div class="legend-item pass-bg">
+      <span class="legend-icon">✓ PASS</span>
+      <span class="legend-text">The service returned exactly what the protocol requires. No action needed.</span>
+    </div>
+    <div class="legend-item fail-bg">
+      <span class="legend-icon">✗ FAIL</span>
+      <span class="legend-text">The service responded but with the wrong code — a real non-conformity with the shared contract. See the note in the cell for details.</span>
+    </div>
+    <div class="legend-item unreachable-bg">
+      <span class="legend-icon">? UNREACHABLE</span>
+      <span class="legend-text">No response at all — service may not be deployed yet, or is down. An unknown posture is itself a risk.</span>
+    </div>
+    <div class="legend-item unknown-bg">
+      <span class="legend-icon">? NO DATA</span>
+      <span class="legend-text">This check has not run yet against this target. Results will appear within 60 seconds.</span>
+    </div>
+  </div>
+</div>
+
+<h2 class="section-title">Recent Findings (last 20)</h2>
 {% for f in recent %}
-<div class="f">
+<div class="finding {{ f.status | lower }}">
   <span class="f-time">{{ f.probe_time }}</span>
   <span class="f-tool">{{ f.target_tool }}</span>
   <span class="f-check">{{ f.check_id }}</span>
-  <span class="f-{{ f.status | lower }}">{{ f.status }}</span>
-  <span>exp {{ f.expected }} · got {{ f.observed }}{% if f.notes %} · {{ f.notes }}{% endif %}</span>
+  <span class="f-status">{{ f.status }}</span>
+  <span class="f-detail">expected {{ f.expected }} · got {{ f.observed }}{% if f.notes %} · {{ f.notes }}{% endif %}</span>
 </div>
 {% else %}
-<p style="color:#6b7280;font-size:0.85em">No findings yet — probe engine starting up.</p>
+<p class="muted">No findings yet — probe engine starting up.</p>
 {% endfor %}
