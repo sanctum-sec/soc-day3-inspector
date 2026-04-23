@@ -73,8 +73,12 @@ async def run_slow_probes():
 def start_scheduler() -> AsyncIOScheduler:
     _load_probe_modules()
     scheduler = AsyncIOScheduler()
-    # max_instances=2 so a slow cycle doesn't block the next one from starting
-    scheduler.add_job(run_regular_probes, "interval", seconds=60,  id="regular", max_instances=2)
-    scheduler.add_job(run_slow_probes,   "interval", seconds=3600, id="slow",    max_instances=1)
+    now = datetime.now(timezone.utc)
+    scheduler.add_job(run_regular_probes, "interval", seconds=60,   id="regular", max_instances=2,
+                      next_run_time=now)
+    # next_run_time=now makes the slow probe fire once immediately on startup,
+    # then every hour — otherwise in a one-day workshop it would never run.
+    scheduler.add_job(run_slow_probes,   "interval", seconds=3600,  id="slow",    max_instances=1,
+                      next_run_time=now)
     scheduler.start()
     return scheduler
