@@ -17,11 +17,11 @@ CHECK_ORDER = [
 TOOL_ORDER = ["trap", "scout", "analyst", "hunter", "dispatcher"]
 
 TOOL_NAMES_UA = {
-    "trap":       "Пастка",
-    "scout":      "Розвідник",
-    "analyst":    "Аналітик",
-    "hunter":     "Мисливець",
-    "dispatcher": "Диспетчер",
+    "trap":       "★ Пастка",
+    "scout":      "★ Розвідник",
+    "analyst":    "★ Аналітик",
+    "hunter":     "★ Мисливець",
+    "dispatcher": "★ Диспетчер",
 }
 
 CHECK_LABELS = {
