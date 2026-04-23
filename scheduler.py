@@ -42,6 +42,12 @@ async def _run_one(client: httpx.AsyncClient, target: dict, fn, min_interval: fl
         check_id = result.get("check_id", "C-UNKNOWN")
         if not _can_run(target["tool"], check_id, min_interval):
             return
+        # If a non-rate-limit probe gets 429, the rate limiter fired before the
+        # check could be evaluated — not a real auth/schema failure. Skip saving
+        # so the previous good result is preserved on the dashboard.
+        if str(result.get("observed", "")) == "429" and check_id != "C-RATE-001":
+            print(f"[scheduler] {target['tool']} {check_id}: got 429 (rate-limited) — skipping, preserving previous result")
+            return
         finding = {
             "finding_id":  f"F-{uuid.uuid4().hex[:8].upper()}",
             "probe_time":  datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
