@@ -1,10 +1,11 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Header, HTTPException
 from fastapi.responses import HTMLResponse
 from jinja2 import Environment, FileSystemLoader
+import asyncio, os
 
 from storage.db import init_db, get_recent_findings, get_compliance_matrix
-from scheduler import start_scheduler
+from scheduler import start_scheduler, run_regular_probes, _last_run
 
 _jinja = Environment(loader=FileSystemLoader("templates"), autoescape=True)
 
@@ -105,3 +106,17 @@ async def compliance_partial(request: Request):
         matrix=matrix, tools=TOOL_ORDER, checks=CHECK_ORDER,
         tool_names_ua=TOOL_NAMES_UA,
         check_labels=CHECK_LABELS, check_desc=CHECK_DESC, recent=recent)
+
+
+_PROBE_TOKEN = os.environ.get("SOC_PROTOCOL_TOKEN", "")
+
+@app.post("/findings/refresh")
+async def force_refresh(authorization: str = Header(default="")):
+    """Clear the rate-limiter and immediately re-run all probes.
+    Requires the shared SOC bearer token so any team can trigger it."""
+    token = authorization.removeprefix("Bearer ").strip()
+    if not token or token != _PROBE_TOKEN:
+        raise HTTPException(status_code=401, detail="Valid bearer token required")
+    _last_run.clear()
+    asyncio.create_task(run_regular_probes())
+    return {"status": "refresh triggered", "message": "Probes re-running now. Results appear in ~10 seconds."}
