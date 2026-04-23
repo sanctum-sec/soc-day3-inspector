@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SOC Inspector — Compliance</title>
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { background:#0f0f1a; color:#d1d5db; font-family:monospace; margin:0; padding:20px; }
+    h1 { color:#818cf8; font-size:1.3em; margin-bottom:4px; }
+    .meta { color:#6b7280; font-size:0.78em; margin-bottom:18px; }
+    table { border-collapse:collapse; width:100%; margin-bottom:28px; font-size:0.85em; }
+    th, td { border:1px solid #2d2d44; padding:7px 10px; }
+    th { background:#16213e; color:#a5b4fc; font-weight:normal; }
+    th.check { text-align:left; min-width:180px; }
+    td { text-align:center; }
+    .pass { background:#052e16; color:#4ade80; }
+    .fail { background:#2d0a0a; color:#f87171; }
+    .unreachable { background:#1c1c08; color:#fbbf24; }
+    .unknown { background:#1a1a2e; color:#6b7280; }
+    td[title] { cursor:help; }
+    h2 { color:#818cf8; font-size:1em; margin-top:0; border-bottom:1px solid #2d2d44; padding-bottom:6px; }
+    .f { display:flex; gap:8px; font-size:0.8em; border-bottom:1px solid #1e1e30; padding:5px 0; }
+    .f-time { color:#6b7280; min-width:140px; }
+    .f-tool { color:#a5b4fc; min-width:80px; }
+    .f-check { color:#94a3b8; min-width:120px; }
+    .f-pass { color:#4ade80; }
+    .f-fail { color:#f87171; }
+    .f-unreachable { color:#fbbf24; }
+    .scope { background:#16213e; border:1px solid #2d2d44; padding:10px 14px; font-size:0.78em; margin-bottom:20px; color:#94a3b8; }
+    .scope strong { color:#c7d2fe; }
+  </style>
+</head>
+<body>
+  <h1>SOC Inspector — Live Compliance Dashboard</h1>
+  <div class="meta">Auto-refreshes every 15 s &nbsp;·&nbsp; All times UTC &nbsp;·&nbsp; Read-only public view</div>
+  <div class="scope">
+    <strong>Declared scope:</strong> This dashboard probes only the endpoints and checks listed below,
+    against the shared SOC protocol contract. No undeclared checks. No exploitation.
+    Findings logged with full transparency.
+  </div>
+  <div hx-get="/compliance-partial" hx-trigger="load, every 15s" hx-swap="innerHTML">
+    <p style="color:#6b7280">Loading compliance data…</p>
+  </div>
+</body>
+</html>

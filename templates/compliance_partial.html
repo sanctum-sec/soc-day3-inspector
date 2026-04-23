@@ -1,0 +1,42 @@
+<table>
+  <thead>
+    <tr>
+      <th class="check">Check</th>
+      {% for tool in tools %}<th>{{ tool }}</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for check_id in checks %}
+    <tr>
+      <th class="check">{{ check_labels.get(check_id, check_id) }}</th>
+      {% for tool in tools %}
+        {% set cell = matrix.get(tool, {}).get(check_id) %}
+        {% if cell %}
+          {% if cell.status == 'PASS' %}
+            <td class="pass" title="{{ check_id }} · {{ cell.probe_time }} · expected {{ cell.expected }} got {{ cell.observed }}{% if cell.notes %} · {{ cell.notes }}{% endif %}">✓</td>
+          {% elif cell.status == 'FAIL' %}
+            <td class="fail" title="{{ check_id }} · {{ cell.probe_time }} · expected {{ cell.expected }} got {{ cell.observed }}{% if cell.notes %} · {{ cell.notes }}{% endif %}">✗</td>
+          {% else %}
+            <td class="unreachable" title="{{ check_id }} · {{ cell.probe_time }} · {{ cell.notes }}">?</td>
+          {% endif %}
+        {% else %}
+          <td class="unknown" title="No data yet">?</td>
+        {% endif %}
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Recent Findings (last 20)</h2>
+{% for f in recent %}
+<div class="f">
+  <span class="f-time">{{ f.probe_time }}</span>
+  <span class="f-tool">{{ f.target_tool }}</span>
+  <span class="f-check">{{ f.check_id }}</span>
+  <span class="f-{{ f.status | lower }}">{{ f.status }}</span>
+  <span>exp {{ f.expected }} · got {{ f.observed }}{% if f.notes %} · {{ f.notes }}{% endif %}</span>
+</div>
+{% else %}
+<p style="color:#6b7280;font-size:0.85em">No findings yet — probe engine starting up.</p>
+{% endfor %}

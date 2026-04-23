@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+httpx
+apscheduler
+pydantic
+jinja2
+aiosqlite
+slowapi

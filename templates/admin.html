@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Inspector Admin</title>
+  <style>
+    * { box-sizing:border-box; }
+    body { background:#0f0f1a; color:#d1d5db; font-family:monospace; margin:0; padding:20px; }
+    h1 { color:#818cf8; font-size:1.2em; }
+    .tabs { display:flex; gap:0; margin-bottom:20px; }
+    .tab { padding:7px 20px; background:#16213e; border:1px solid #2d2d44; cursor:pointer; color:#94a3b8; }
+    .tab.active { background:#1e2a50; color:#c7d2fe; border-bottom-color:#1e2a50; }
+    .panel { display:none; }
+    .panel.active { display:block; }
+    .stats { display:flex; gap:15px; flex-wrap:wrap; margin-bottom:20px; }
+    .stat { background:#16213e; border:1px solid #2d2d44; padding:12px 18px; min-width:140px; }
+    .stat-n { font-size:2em; color:#818cf8; }
+    .stat-l { font-size:0.75em; color:#6b7280; }
+    h2 { color:#818cf8; font-size:0.95em; border-bottom:1px solid #2d2d44; padding-bottom:5px; }
+    table { border-collapse:collapse; width:100%; font-size:0.8em; margin-bottom:20px; }
+    th, td { border:1px solid #2d2d44; padding:5px 8px; text-align:left; }
+    th { background:#16213e; color:#a5b4fc; }
+    .fail { color:#f87171; }
+    .pass { color:#4ade80; }
+    .unreachable { color:#fbbf24; }
+  </style>
+  <script>
+    function showTab(id) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script>
+</head>
+<body>
+  <h1>Inspector Admin — Internal Only</h1>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('operational')">Operational</div>
+    <div class="tab" onclick="showTab('security')">Security</div>
+  </div>
+
+  <div id="operational" class="panel active">
+    <div class="stats">
+      <div class="stat"><div class="stat-n">{{ stats.checks_5m }}</div><div class="stat-l">checks / 5 min</div></div>
+      <div class="stat"><div class="stat-n">{{ stats.checks_1h }}</div><div class="stat-l">checks / 1 hr</div></div>
+      <div class="stat"><div class="stat-n">{{ stats.checks_24h }}</div><div class="stat-l">checks / 24 hr</div></div>
+      <div class="stat"><div class="stat-n fail">{{ stats.fails_today }}</div><div class="stat-l">failures today</div></div>
+    </div>
+    <h2>Recent Findings</h2>
+    <table>
+      <tr><th>Time</th><th>Tool</th><th>Check</th><th>Status</th><th>Expected</th><th>Observed</th><th>Notes</th></tr>
+      {% for f in recent %}
+      <tr>
+        <td>{{ f.probe_time }}</td>
+        <td>{{ f.target_tool }}</td>
+        <td>{{ f.check_id }}</td>
+        <td class="{{ f.status | lower }}">{{ f.status }}</td>
+        <td>{{ f.expected }}</td>
+        <td>{{ f.observed }}</td>
+        <td>{{ f.notes }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <div id="security" class="panel">
+    <h2>Failures</h2>
+    <table>
+      <tr><th>Time</th><th>Tool</th><th>Check</th><th>Observed</th><th>Notes</th></tr>
+      {% for f in fails %}
+      <tr>
+        <td>{{ f.probe_time }}</td>
+        <td>{{ f.target_tool }}</td>
+        <td>{{ f.check_id }}</td>
+        <td class="fail">{{ f.observed }}</td>
+        <td>{{ f.notes }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    <h2>Unreachable Targets</h2>
+    <table>
+      <tr><th>Time</th><th>Tool</th><th>Check</th><th>Notes</th></tr>
+      {% for f in unreachable %}
+      <tr>
+        <td>{{ f.probe_time }}</td>
+        <td>{{ f.target_tool }}</td>
+        <td>{{ f.check_id }}</td>
+        <td class="unreachable">{{ f.notes }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</body>
+</html>
